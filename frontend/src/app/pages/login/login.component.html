@@ -1,0 +1,47 @@
+<div class="wrap">
+  <section class="hero">
+    <h1>📦 Stock<span>Flow</span></h1>
+    <p class="lead">Gérez votre stock simplement : produits, entrées, sorties et alertes.</p>
+    <ul>
+      <li>📦 Un catalogue de produits avec valeur du stock en temps réel</li>
+      <li>🔁 Chaque entrée et sortie est tracée (qui, quand, pourquoi)</li>
+      <li>🚨 Des alertes dès qu'un produit passe sous son seuil</li>
+    </ul>
+  </section>
+
+  <form class="card" [formGroup]="form" (ngSubmit)="submit()">
+    <h2>{{ mode() === 'login' ? 'Connexion' : 'Créer un compte' }}</h2>
+
+    @if (mode() === 'register') {
+      <label>Nom
+        <input formControlName="nom" placeholder="Votre nom" autocomplete="name">
+      </label>
+    }
+    <label>Email
+      <input formControlName="email" type="email" placeholder="vous@exemple.com" autocomplete="email">
+    </label>
+    <label>Mot de passe
+      <input formControlName="password" type="password" placeholder="8 caractères minimum"
+             [attr.autocomplete]="mode() === 'login' ? 'current-password' : 'new-password'">
+    </label>
+
+    @if (error()) {
+      <p class="error">{{ error() }}</p>
+    }
+
+    <button class="btn-primary" type="submit" [disabled]="loading()">
+      {{ loading() ? 'Patientez…' : mode() === 'login' ? 'Se connecter' : "S'inscrire" }}
+    </button>
+
+    <p class="switch">
+      {{ mode() === 'login' ? 'Pas encore de compte ?' : 'Déjà inscrit ?' }}
+      <button type="button" class="link" (click)="toggle()">
+        {{ mode() === 'login' ? 'Créer un compte' : 'Se connecter' }}
+      </button>
+    </p>
+    <div class="demos">
+      <button type="button" class="demo" (click)="fillDemo('admin')">Démo administrateur</button>
+      <button type="button" class="demo" (click)="fillDemo('employe')">Démo employé</button>
+    </div>
+  </form>
+</div>

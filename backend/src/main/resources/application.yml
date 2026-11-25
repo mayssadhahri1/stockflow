@@ -1,0 +1,39 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: stockflow
+  # Par défaut : base H2 en mémoire (aucune installation nécessaire).
+  # Avec Docker, ces valeurs sont remplacées par PostgreSQL (voir docker-compose.yml).
+  datasource:
+    url: ${DB_URL:jdbc:h2:mem:stockflow;DB_CLOSE_DELAY=-1}
+    username: ${DB_USERNAME:sa}
+    password: ${DB_PASSWORD:}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+  h2:
+    console:
+      enabled: true
+
+app:
+  # Comptes et produits de démonstration (désactiver en production)
+  demo-data: ${APP_DEMO_DATA:true}
+  jwt:
+    # Clé de développement uniquement : en production, définir JWT_SECRET (Base64, 256 bits minimum)
+    secret: ${JWT_SECRET:ZGV2LXNlY3JldC1zdG9ja2Zsb3ctY2hhbmdlLW1lLWluLXByb2R1Y3Rpb24tMjAyNi0hIQ==}
+    expiration-minutes: ${JWT_EXPIRATION_MINUTES:480}
+  cors:
+    allowed-origins: ${CORS_ORIGINS:http://localhost:4200}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html

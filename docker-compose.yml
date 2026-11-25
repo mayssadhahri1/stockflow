@@ -1,0 +1,37 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: stockflow
+      POSTGRES_USER: stockflow
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-stockflow}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U stockflow"]
+      interval: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/stockflow
+      DB_USERNAME: stockflow
+      DB_PASSWORD: ${DB_PASSWORD:-stockflow}
+      # À remplacer par votre propre clé : openssl rand -base64 48
+      JWT_SECRET: ${JWT_SECRET:-ZGV2LXNlY3JldC1zdG9ja2Zsb3ctY2hhbmdlLW1lLWluLXByb2R1Y3Rpb24tMjAyNi0hIQ==}
+    ports:
+      - "8080:8080"
+
+  frontend:
+    build: ./frontend
+    depends_on:
+      - backend
+    ports:
+      - "4200:80"
+
+volumes:
+  db-data:

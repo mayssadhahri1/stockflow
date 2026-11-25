@@ -1,0 +1,68 @@
+<div class="page-head">
+  <div>
+    <h1>Tableau de bord</h1>
+    <p class="muted">Vue d'ensemble du stock, bonjour {{ auth.user()?.nom }}.</p>
+  </div>
+  <a class="btn-primary" routerLink="/mouvements">Enregistrer un mouvement</a>
+</div>
+
+@if (error()) {
+  <p class="alert">{{ error() }}</p>
+}
+
+@if (data(); as d) {
+  <section class="kpis">
+    <div class="kpi"><span>Valeur du stock</span><strong>{{ d.valeurStock | currency: 'TND' : 'symbol' : '1.0-0' : 'fr' }}</strong></div>
+    <div class="kpi"><span>Produits</span><strong>{{ d.nbProduits }}</strong><small>{{ d.unitesEnStock | number: '1.0-0' : 'fr' }} unités</small></div>
+    <div class="kpi" [class.warn]="d.nbAlertes > 0"><span>En alerte</span><strong>{{ d.nbAlertes }}</strong><small>sous le seuil</small></div>
+    <div class="kpi"><span>30 derniers jours</span><strong class="flow"><em class="in">+{{ d.entrees30j }}</em> <em class="out">−{{ d.sorties30j }}</em></strong><small>entrées / sorties</small></div>
+  </section>
+
+  <div class="cols">
+    <section class="card">
+      <h2>🚨 Produits en alerte</h2>
+      @for (p of d.alertes; track p.id) {
+        <div class="row">
+          <div><b>{{ p.nom }}</b><br><span class="ref">{{ p.reference }}</span></div>
+          <span class="badge low">{{ p.quantite }} / seuil {{ p.seuilAlerte }}</span>
+        </div>
+      } @empty {
+        <p class="muted">Aucun produit sous son seuil 👍</p>
+      }
+    </section>
+
+    <section class="card">
+      <h2>Valeur par catégorie</h2>
+      @for (c of categories(); track c.nom) {
+        <div class="bar-row">
+          <span class="bar-label">{{ c.nom }}</span>
+          <div class="bar"><div [style.width.%]="c.pct"></div></div>
+          <span class="bar-value">{{ c.valeur | number: '1.0-0' : 'fr' }} DT</span>
+        </div>
+      } @empty {
+        <p class="muted">Aucun produit.</p>
+      }
+    </section>
+  </div>
+
+  <section class="card">
+    <h2>Derniers mouvements</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Date</th><th>Produit</th><th>Type</th><th class="num">Quantité</th><th class="num">Stock après</th><th>Par</th></tr></thead>
+        <tbody>
+          @for (m of d.derniersMouvements; track m.id) {
+            <tr>
+              <td>{{ m.date | date: 'dd/MM HH:mm' }}</td>
+              <td>{{ m.produitNom }}</td>
+              <td><span class="badge" [class.in]="m.type === 'ENTREE'" [class.out]="m.type === 'SORTIE'">{{ m.type === 'ENTREE' ? 'Entrée' : 'Sortie' }}</span></td>
+              <td class="num">{{ m.quantite }}</td>
+              <td class="num">{{ m.stockApres }}</td>
+              <td class="muted">{{ m.auteur }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+}

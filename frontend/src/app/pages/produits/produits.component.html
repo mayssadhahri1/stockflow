@@ -1,0 +1,76 @@
+<div class="page-head">
+  <div>
+    <h1>Produits</h1>
+    <p class="muted">{{ produits().length }} produit(s) affiché(s)</p>
+  </div>
+  <div class="actions">
+    <button class="btn-ghost" (click)="exporter()">⬇ Export CSV</button>
+    @if (auth.isAdmin()) {
+      <button class="btn-primary" (click)="ouvrirProduit(null)">+ Nouveau produit</button>
+    }
+  </div>
+</div>
+
+<div class="filters card">
+  <input type="search" placeholder="🔍 Nom ou référence…" [(ngModel)]="recherche" (ngModelChange)="onRecherche()">
+  <select [(ngModel)]="categorie" (ngModelChange)="charger()">
+    <option value="">Toutes les catégories</option>
+    @for (c of categories(); track c) { <option [value]="c">{{ c }}</option> }
+  </select>
+  <label class="toggle">
+    <input type="checkbox" [(ngModel)]="alerteSeulement" (ngModelChange)="charger()"> Seulement les alertes
+  </label>
+</div>
+
+@if (error()) {
+  <p class="alert">{{ error() }}</p>
+}
+
+<section class="card">
+  @if (loading()) {
+    <p class="muted">Chargement…</p>
+  } @else {
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Produit</th><th>Catégorie</th><th class="num">Prix (DT)</th><th class="num">Stock</th><th class="num">Valeur (DT)</th><th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (p of produits(); track p.id) {
+            <tr>
+              <td><b>{{ p.nom }}</b><br><span class="ref">{{ p.reference }}</span></td>
+              <td>{{ p.categorie }}</td>
+              <td class="num">{{ p.prixUnitaire | number: '1.2-3' : 'fr' }}</td>
+              <td class="num">
+                <span class="badge" [class.low]="p.enAlerte" [class.ok]="!p.enAlerte" [title]="'Seuil d\'alerte : ' + p.seuilAlerte">{{ p.quantite }}</span>
+              </td>
+              <td class="num">{{ p.valeurStock | number: '1.0-0' : 'fr' }}</td>
+              <td class="row-actions">
+                <button class="mini in" (click)="ouvrirMouvement(p, 'ENTREE')" title="Entrée de stock">＋</button>
+                <button class="mini out" (click)="ouvrirMouvement(p, 'SORTIE')" title="Sortie de stock">－</button>
+                @if (auth.isAdmin()) {
+                  <button class="mini" (click)="ouvrirProduit(p)" title="Modifier">✏️</button>
+                  <button class="mini" (click)="supprimer(p)" title="Supprimer">🗑️</button>
+                }
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="6" class="muted empty">Aucun produit ne correspond aux filtres.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>
+
+@if (produitModal(); as m) {
+  <app-produit-form [produit]="m.produit" [categories]="categories()" [saving]="saving()" [error]="modalError()"
+                    (save)="enregistrerProduit($event)" (cancel)="produitModal.set(null)" />
+}
+
+@if (mouvementModal(); as m) {
+  <app-mouvement-form [produits]="produits()" [produitId]="m.produitId" [typeInitial]="m.type" [saving]="saving()"
+                      [error]="modalError()" (save)="enregistrerMouvement($event)" (cancel)="mouvementModal.set(null)" />
+}
